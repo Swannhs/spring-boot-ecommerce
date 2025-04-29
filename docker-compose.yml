@@ -1,0 +1,119 @@
+version: '3.8'
+
+services:
+  # Order Service
+  order-service:
+    build:
+      context: ./order-service
+      dockerfile: docker/local/Dockerfile
+    container_name: order-service
+    ports:
+      - "8081:8080"  # Map to 8081 on host to avoid conflicts
+      - "5005:5005"  # Debug port
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://order-db:5432/order_db
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=postgres
+      - SPRING_JPA_HIBERNATE_DDL_AUTO=update
+    volumes:
+      - ./order-service/src:/app/src  # For hot reloading
+    depends_on:
+      - order-db
+    networks:
+      - ecommerce-network
+
+  # Order Database
+  order-db:
+    image: postgres:14-alpine
+    container_name: order-db
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_DB=order_db
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    volumes:
+      - order-db-data:/var/lib/postgresql/data
+    networks:
+      - ecommerce-network
+
+  # Payment Service
+  payment-service:
+    build:
+      context: ./payment-service
+      dockerfile: docker/local/Dockerfile
+    container_name: payment-service
+    ports:
+      - "8082:8080"  # Map to 8082 on host to avoid conflicts
+      - "5006:5005"  # Debug port (different port on host)
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://payment-db:5432/payment_db
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=postgres
+      - SPRING_JPA_HIBERNATE_DDL_AUTO=update
+    volumes:
+      - ./payment-service/src:/app/src  # For hot reloading
+    depends_on:
+      - payment-db
+    networks:
+      - ecommerce-network
+
+  # Payment Database
+  payment-db:
+    image: postgres:14-alpine
+    container_name: payment-db
+    ports:
+      - "5433:5432"  # Using 5433 on host to avoid conflict
+    environment:
+      - POSTGRES_DB=payment_db
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    volumes:
+      - payment-db-data:/var/lib/postgresql/data
+    networks:
+      - ecommerce-network
+
+  # Product Service
+  product-service:
+    build:
+      context: ./product-service
+      dockerfile: docker/local/Dockerfile
+    container_name: product-service
+    ports:
+      - "8083:8080"  # Map to 8083 on host to avoid conflicts
+      - "5007:5005"  # Debug port (different port on host)
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://product-db:5432/product_db
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=postgres
+      - SPRING_JPA_HIBERNATE_DDL_AUTO=update
+    volumes:
+      - ./product-service/src:/app/src  # For hot reloading
+    depends_on:
+      - product-db
+    networks:
+      - ecommerce-network
+
+  # Product Database
+  product-db:
+    image: postgres:14-alpine
+    container_name: product-db
+    ports:
+      - "5434:5432"  # Using 5434 on host to avoid conflict
+    environment:
+      - POSTGRES_DB=product_db
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    volumes:
+      - product-db-data:/var/lib/postgresql/data
+    networks:
+      - ecommerce-network
+
+networks:
+  ecommerce-network:
+    driver: bridge
+
+volumes:
+  order-db-data:
+  payment-db-data:
+  product-db-data:
