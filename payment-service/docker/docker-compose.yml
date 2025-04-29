@@ -1,0 +1,45 @@
+version: '3.8'
+
+services:
+  # Payment Service
+  payment-service:
+    build:
+      context: ..
+      dockerfile: docker/local/Dockerfile
+    container_name: payment-service
+    ports:
+      - "8080:8080"
+      - "5005:5005"  # Debug port
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://payment-db:5432/payment_db
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=postgres
+      - SPRING_JPA_HIBERNATE_DDL_AUTO=update
+    volumes:
+      - ../src:/app/src  # For hot reloading
+    depends_on:
+      - payment-db
+    networks:
+      - payment-network
+
+  # PostgreSQL Database
+  payment-db:
+    image: postgres:14-alpine
+    container_name: payment-db
+    ports:
+      - "5433:5432"  # Using 5433 on host to avoid conflict with order-service db
+    environment:
+      - POSTGRES_DB=payment_db
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    volumes:
+      - payment-db-data:/var/lib/postgresql/data
+    networks:
+      - payment-network
+
+networks:
+  payment-network:
+    driver: bridge
+
+volumes:
+  payment-db-data:

@@ -1,0 +1,45 @@
+version: '3.8'
+
+services:
+  # Product Service
+  product-service:
+    build:
+      context: ..
+      dockerfile: docker/local/Dockerfile
+    container_name: product-service
+    ports:
+      - "8080:8080"
+      - "5005:5005"  # Debug port
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://product-db:5432/product_db
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=postgres
+      - SPRING_JPA_HIBERNATE_DDL_AUTO=update
+    volumes:
+      - ../src:/app/src  # For hot reloading
+    depends_on:
+      - product-db
+    networks:
+      - product-network
+
+  # PostgreSQL Database
+  product-db:
+    image: postgres:14-alpine
+    container_name: product-db
+    ports:
+      - "5434:5432"  # Using 5434 on host to avoid conflict with other service dbs
+    environment:
+      - POSTGRES_DB=product_db
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    volumes:
+      - product-db-data:/var/lib/postgresql/data
+    networks:
+      - product-network
+
+networks:
+  product-network:
+    driver: bridge
+
+volumes:
+  product-db-data:
