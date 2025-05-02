@@ -3,6 +3,9 @@ FROM openjdk:17-jdk-slim as build
 
 WORKDIR /app
 
+# Create .m2 directory for Maven cache
+RUN mkdir -p /root/.m2/repository
+
 # Copy the Maven wrapper and pom.xml
 COPY mvnw .
 COPY .mvn .mvn
@@ -32,7 +35,7 @@ COPY --from=build /app/target/*.jar app.jar
 ENV SPRING_PROFILES_ACTIVE=prod
 
 # Expose the port the app runs on
-EXPOSE 8080
+EXPOSE 9092
 
 # Run the application
 ENTRYPOINT ["java", "-jar", "app.jar"]

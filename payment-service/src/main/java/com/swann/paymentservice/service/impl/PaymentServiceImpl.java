@@ -1,10 +1,11 @@
-package com.swann.paymentservice.service;
+package com.swann.paymentservice.service.impl;
 
 import com.swann.paymentservice.config.KafkaConfig;
 import com.swann.paymentservice.dto.PaymentResponse;
 import com.swann.paymentservice.event.PaymentProcessedEvent;
 import com.swann.paymentservice.model.Payment;
 import com.swann.paymentservice.repository.PaymentRepository;
+import com.swann.paymentservice.service.PaymentService;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

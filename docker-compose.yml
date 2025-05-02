@@ -1,6 +1,38 @@
 version: '3.8'
 
 services:
+  # Kafka and ZooKeeper
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.3.0
+    container_name: zookeeper
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    ports:
+      - "2181:2181"
+    networks:
+      - ecommerce-network
+
+  kafka:
+    image: confluentinc/cp-kafka:7.3.0
+    container_name: kafka
+    depends_on:
+      - zookeeper
+    ports:
+      - "9092:9092"
+      - "29092:29092"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,PLAINTEXT_HOST://localhost:29092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+      KAFKA_CREATE_TOPICS: "order-created:1:1,payment-processed:1:1"
+    networks:
+      - ecommerce-network
+
   # Order Service
   order-service:
     build:
@@ -8,17 +40,20 @@ services:
       dockerfile: docker/local/Dockerfile
     container_name: order-service
     ports:
-      - "8081:8080"  # Map to 8081 on host to avoid conflicts
+      - "8081:9092"  # Map to 8081 on host to avoid conflicts
       - "5005:5005"  # Debug port
     environment:
       - SPRING_DATASOURCE_URL=jdbc:postgresql://order-db:5432/order_db
       - SPRING_DATASOURCE_USERNAME=postgres
       - SPRING_DATASOURCE_PASSWORD=postgres
       - SPRING_JPA_HIBERNATE_DDL_AUTO=update
+      - SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka:9092
     volumes:
       - ./order-service/src:/app/src  # For hot reloading
+      - maven-repo:/root/.m2/repository  # Maven cache
     depends_on:
       - order-db
+      - kafka
     networks:
       - ecommerce-network
 
@@ -44,17 +79,20 @@ services:
       dockerfile: docker/local/Dockerfile
     container_name: payment-service
     ports:
-      - "8082:8080"  # Map to 8082 on host to avoid conflicts
+      - "8082:9093"  # Map to 8082 on host to avoid conflicts
       - "5006:5005"  # Debug port (different port on host)
     environment:
       - SPRING_DATASOURCE_URL=jdbc:postgresql://payment-db:5432/payment_db
       - SPRING_DATASOURCE_USERNAME=postgres
       - SPRING_DATASOURCE_PASSWORD=postgres
       - SPRING_JPA_HIBERNATE_DDL_AUTO=update
+      - SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka:9092
     volumes:
       - ./payment-service/src:/app/src  # For hot reloading
+      - maven-repo:/root/.m2/repository  # Maven cache
     depends_on:
       - payment-db
+      - kafka
     networks:
       - ecommerce-network
 
@@ -80,17 +118,20 @@ services:
       dockerfile: docker/local/Dockerfile
     container_name: product-service
     ports:
-      - "8083:8080"  # Map to 8083 on host to avoid conflicts
+      - "8083:9091"  # Map to 8083 on host to avoid conflicts
       - "5007:5005"  # Debug port (different port on host)
     environment:
       - SPRING_DATASOURCE_URL=jdbc:postgresql://product-db:5432/product_db
       - SPRING_DATASOURCE_USERNAME=postgres
       - SPRING_DATASOURCE_PASSWORD=postgres
       - SPRING_JPA_HIBERNATE_DDL_AUTO=update
+      - SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka:9092
     volumes:
       - ./product-service/src:/app/src  # For hot reloading
+      - maven-repo:/root/.m2/repository  # Maven cache
     depends_on:
       - product-db
+      - kafka
     networks:
       - ecommerce-network
 
@@ -117,3 +158,4 @@ volumes:
   order-db-data:
   payment-db-data:
   product-db-data:
+  maven-repo:

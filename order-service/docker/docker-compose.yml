@@ -8,7 +8,7 @@ services:
       dockerfile: docker/local/Dockerfile
     container_name: order-service
     ports:
-      - "8080:8080"
+      - "9092:9092"
       - "5005:5005"  # Debug port
     environment:
       - SPRING_DATASOURCE_URL=jdbc:postgresql://order-db:5432/order_db
@@ -17,6 +17,7 @@ services:
       - SPRING_JPA_HIBERNATE_DDL_AUTO=update
     volumes:
       - ../src:/app/src  # For hot reloading
+      - maven-repo:/root/.m2/repository  # Maven cache
     depends_on:
       - order-db
     networks:
@@ -43,3 +44,4 @@ networks:
 
 volumes:
   order-db-data:
+  maven-repo:

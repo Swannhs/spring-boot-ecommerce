@@ -1,10 +1,11 @@
-package com.swann.productservice.service;
+package com.swann.productservice.service.impl;
 
 import com.swann.productservice.dto.CreateProductRequest;
 import com.swann.productservice.dto.ProductResponse;
 import com.swann.productservice.dto.UpdateProductStockRequest;
 import com.swann.productservice.model.Product;
 import com.swann.productservice.repository.ProductRepository;
+import com.swann.productservice.service.ProductService;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
