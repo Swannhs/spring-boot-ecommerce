@@ -2,6 +2,11 @@ package com.swann.paymentservice.controller;
 
 import com.swann.paymentservice.dto.PaymentResponse;
 import com.swann.paymentservice.service.PaymentService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -17,18 +22,19 @@ import java.util.UUID;
 @RequestMapping("/payments")
 @RequiredArgsConstructor
 @Slf4j
+@Tag(name = "Payment Management", description = "APIs for managing payments in the e-commerce system")
 public class PaymentController {
 
     private final PaymentService paymentService;
 
-    /**
-     * Get payment by order ID
-     * 
-     * @param orderId the order ID
-     * @return the payment response with 200 OK status, or 404 Not Found if payment doesn't exist
-     */
+    @Operation(summary = "Get payment by order ID", description = "Retrieves payment information for a specific order")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Payment found and returned"),
+        @ApiResponse(responseCode = "404", description = "Payment not found for the order"),
+        @ApiResponse(responseCode = "500", description = "Internal server error")
+    })
     @GetMapping("/order/{orderId}")
-    public ResponseEntity<PaymentResponse> getPaymentByOrderId(@PathVariable UUID orderId) {
+    public ResponseEntity<PaymentResponse> getPaymentByOrderId(@Parameter(description = "Unique identifier of the order") @PathVariable UUID orderId) {
         log.info("Received request to get payment for order: {}", orderId);
         try {
             PaymentResponse response = paymentService.getPaymentByOrderId(orderId);

@@ -3,7 +3,13 @@ package com.swann.orderservice.controller;
 import com.swann.orderservice.dto.CreateOrderRequest;
 import com.swann.orderservice.dto.OrderResponse;
 import com.swann.orderservice.service.OrderService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -17,31 +23,32 @@ import java.util.UUID;
 @RequestMapping("/orders")
 @RequiredArgsConstructor
 @Slf4j
+@Tag(name = "Order Management", description = "APIs for managing orders in the e-commerce system")
 public class OrderController {
 
     private final OrderService orderService;
 
-    /**
-     * Create a new order
-     * 
-     * @param request the order creation request
-     * @return the created order response with 201 Created status
-     */
+    @Operation(summary = "Create a new order", description = "Creates a new order for a customer with the specified items")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "201", description = "Order created successfully"),
+        @ApiResponse(responseCode = "400", description = "Invalid request data"),
+        @ApiResponse(responseCode = "500", description = "Internal server error")
+    })
     @PostMapping
-    public ResponseEntity<OrderResponse> createOrder(@RequestBody CreateOrderRequest request) {
+    public ResponseEntity<OrderResponse> createOrder(@Valid @RequestBody CreateOrderRequest request) {
         log.info("Received request to create order for customer: {}", request.getCustomerId());
         OrderResponse response = orderService.createOrder(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
-    /**
-     * Get an order by ID
-     * 
-     * @param orderId the order ID
-     * @return the order response with 200 OK status, or 404 Not Found if order doesn't exist
-     */
+    @Operation(summary = "Get order by ID", description = "Retrieves a specific order by its unique identifier")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Order found and returned"),
+        @ApiResponse(responseCode = "404", description = "Order not found"),
+        @ApiResponse(responseCode = "500", description = "Internal server error")
+    })
     @GetMapping("/{orderId}")
-    public ResponseEntity<OrderResponse> getOrderById(@PathVariable UUID orderId) {
+    public ResponseEntity<OrderResponse> getOrderById(@Parameter(description = "Unique identifier of the order") @PathVariable UUID orderId) {
         log.info("Received request to get order with ID: {}", orderId);
         try {
             OrderResponse response = orderService.getOrderById(orderId);
@@ -52,14 +59,14 @@ public class OrderController {
         }
     }
 
-    /**
-     * Get all orders for a customer
-     * 
-     * @param customerId the customer ID
-     * @return list of order responses with 200 OK status, or 404 Not Found if no orders exist
-     */
+    @Operation(summary = "Get orders by customer ID", description = "Retrieves all orders for a specific customer")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Orders found and returned"),
+        @ApiResponse(responseCode = "404", description = "No orders found for the customer"),
+        @ApiResponse(responseCode = "500", description = "Internal server error")
+    })
     @GetMapping("/customer/{customerId}")
-    public ResponseEntity<List<OrderResponse>> getOrdersByCustomerId(@PathVariable UUID customerId) {
+    public ResponseEntity<List<OrderResponse>> getOrdersByCustomerId(@Parameter(description = "Unique identifier of the customer") @PathVariable UUID customerId) {
         log.info("Received request to get orders for customer: {}", customerId);
         List<OrderResponse> orders = orderService.getOrdersByCustomerId(customerId);
         

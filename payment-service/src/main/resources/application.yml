@@ -33,6 +33,19 @@ spring:
       payment-processed: payment-processed
 
 server:
-  port: 9093
+   port: 9093
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      show-details: when-authorized
+  metrics:
+    export:
+      prometheus:
+        enabled: true
 
 # These settings will be overridden by environment variables in Docker

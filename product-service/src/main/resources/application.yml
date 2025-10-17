@@ -30,6 +30,19 @@ spring:
         spring.json.trusted.packages: com.swann.*
 
 server:
-  port: 9091
+   port: 9091
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      show-details: when-authorized
+  metrics:
+    export:
+      prometheus:
+        enabled: true
 
 # These settings will be overridden by environment variables in Docker

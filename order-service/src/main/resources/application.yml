@@ -26,6 +26,19 @@ spring:
       order-created: order-created
 
 server:
-  port: 9092
+   port: 9092
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      show-details: when-authorized
+  metrics:
+    export:
+      prometheus:
+        enabled: true
 
 # These settings will be overridden by environment variables in Docker
